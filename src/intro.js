@@ -12,7 +12,7 @@
 // the light with the rest of the body. Light is direction: in the dark of the opening only the first fiber has light.
 // No number, date or caption is shown inside the sequence; no spark, burst or replay of events.
 
-import { V3, Q, clamp, mix, smoothstep } from './math.js?v=mweb9mux';
+import { V3, Q, clamp, mix, smoothstep } from './math.js?v=mwebkyjr';
 
 // ---------------------------------------------------------------- THE WORDS (the founder's; change a word or a time here, nothing else)
 // INTRO WORDS. Times are music positions in seconds. Each line arrives on its time (drawing itself in, left to right) and
@@ -21,19 +21,19 @@ import { V3, Q, clamp, mix, smoothstep } from './math.js?v=mweb9mux';
 // it always did. Each card is gone half a second before the next arrives; the last is gone by cardsEnd.
 export const WORDS = {
   lines: [
-    { at: 6.385, end: 9.6, text: 'This is the first thing Auto learned.' },
+    { at: 6.385, end: 9.6, text: 'This is the first thing Autogenics learned.' },
     { at: 12.363, end: 19.0, text: 'Every fiber is one skill.' },
     { at: 19.863, end: 24.4, text: 'Most AI starts from nothing every time.' },
-    { at: 24.863, end: 29.4, text: 'Auto keeps what he learns.' },
+    { at: 24.863, end: 29.4, text: 'Autogenics keeps what he learns.' },
     { at: 29.863, end: 37.4, text: 'What he has learned, he does himself.' },
   ],
   cards: [
-    { at: 44.863, head: 'Auto', text: 'A new kind of AI system.' },
-    { at: 49.863, head: 'He learns', text: 'The first time he meets a job, a model works it out. Auto keeps what worked.' },
+    { at: 44.863, head: 'Autogenics', text: 'A new kind of AI system.' },
+    { at: 49.863, head: 'He learns', text: 'The first time he meets a job, a model works it out. Autogenics keeps what worked.' },
     { at: 54.863, head: 'He remembers', text: 'The next time, he does the job himself. From memory.' },
     { at: 59.863, head: 'He builds on it', text: 'From what he has learned, he does brand-new things no one has shown him.' },   // FOUNDER, 12 Nov 3:31 PM: "your down playing it he can also do brand new stuff from what hes learned" (note 8). Never undersell this.
     { at: 64.863, head: 'He knows his limits', text: 'When he is not sure, he hands the job back to the model.' },
-    { at: 69.863, head: 'Autogenic', text: 'This is everything Auto has learned so far.' },
+    { at: 69.863, head: 'The Anatomy', text: 'This is everything Autogenics has learned so far.' },
   ],
   cardsEnd: 74.363,
   skip: 'Skip',                       // the quiet control at the lower right (its key cap says Esc)
@@ -45,7 +45,7 @@ export const HIT_LIGHT = 0.07;       // INTRO R2: the answer to a strong hit of 
 
 // Used only when the cue sheet cannot be read: the same measured tempo (96 a minute, bar lines at -0.137 + 2.5 n).
 const FALLBACK = { tempo: { downbeat: -0.137, bar: 2.5 }, moments: [{ t: 3.437, kind: 'fall' }, { t: 6.385, kind: 'enter' }], hits: [], envelope: null };
-const CUES_URL = new URL('../audio/ambient.cues.json?v=mweb9mux', import.meta.url).href;
+const CUES_URL = new URL('../audio/ambient.cues.json?v=mwebkyjr', import.meta.url).href;
 
 // The dark of the opening is air: how far the lens can see. At house light 0 the air is black some 22 units out (the
 // first fiber and its nearest neighbours only); at 1 it is the page's own air (FOG_IN in main.js, about 700 units).

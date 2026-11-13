@@ -12,11 +12,11 @@
 // gather, tent)  ->  bloom mip chain  ->  streaming light  ->  filmic tonemap, vignette, grain.
 // Picking renders fiber ids into a small offscreen buffer.
 
-import { Program, texture, target } from './glx.js?v=mweb9mux';
-import * as SH from './shaders.js?v=mweb9mux';
-import { M4, Q, V3, clamp, mix, rng } from './math.js?v=mweb9mux';
-import * as ANAT from './anatomy.js?v=mweb9mux';
-import { LAB, labQ } from './lab.js?v=mweb9mux';
+import { Program, texture, target } from './glx.js?v=mwebkyjr';
+import * as SH from './shaders.js?v=mwebkyjr';
+import { M4, Q, V3, clamp, mix, rng } from './math.js?v=mwebkyjr';
+import * as ANAT from './anatomy.js?v=mwebkyjr';
+import { LAB, labQ } from './lab.js?v=mwebkyjr';
 
 const { CPN, SPARE_ROWS } = ANAT;
 const ROWS_MAX = 2048;

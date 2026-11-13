@@ -6,8 +6,8 @@
 // the short chip name, chip and label construction in build(), and two lines in showCard(). The newer panels
 // (keys, legend, burst counters, notices) live in panels.js. Lines marked MERGE were written at the merge.
 
-import { M4, clamp } from './math.js?v=mweb9mux';
-import { PLATE_SEATS } from './anatomy.js?v=mweb9mux';
+import { M4, clamp } from './math.js?v=mwebkyjr';
+import { PLATE_SEATS } from './anatomy.js?v=mwebkyjr';
 
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DASH = '–';
@@ -35,7 +35,7 @@ const SEATS = [[1, -1, 56, 38], [1, 1, 56, 40], [1, -1, 100, 78], [1, 1, 100, 80
 const ORIGIN_WORDS = {
   learned: ['Learned', 'Learned from a real request'],
   taught: ['Taught', 'Taught by demonstration'],
-  library: ['Library', 'Admitted from the One Auto Library'],
+  library: ['Library', 'Admitted from the One Autogenics Library'],
   foundry: ['Foundry', 'Certified by the Foundry.'],
 };
 const STATE_WORDS = { active: 'Active', staged: 'Staged: not switched on', off: 'Switched off', observed: 'Observed only' };
@@ -74,7 +74,7 @@ export class Overlay {
     const t = model.totals, tot = $('totals');
     tot.replaceChildren();
     // FIX V21: the amber on the map is a hand-back to the model (in the burst replay it is a hand-back to a person, and says so)
-    for (const [v, label] of [[t.skills, t.skills === 1 ? 'skill' : 'skills'], [t.jobs_done, 'jobs done by Auto'], [t.handed_back, 'handed back to the model'], [t.model_calls_saved, 'model calls saved']]) {
+    for (const [v, label] of [[t.skills, t.skills === 1 ? 'skill' : 'skills'], [t.jobs_done, 'jobs done by Autogenics'], [t.handed_back, 'handed back to the model'], [t.model_calls_saved, 'model calls saved']]) {
       const d = el('div', 'tot'); d.append(el('dt', null, num(v)), el('dd', null, label)); tot.append(d);
     }
     // FIX V17: on an invented feed the strip itself says so, so no crop of it can pass for a record
@@ -202,7 +202,7 @@ export class Overlay {
     $('card-origin').textContent = origin;
     const rows = $('card-rows'); rows.replaceChildren();
     const add = (k, v, cls) => { const d = el('div', 'row' + (cls ? ' ' + cls : '')); d.append(el('dt', null, k), el('dd', v === 'Not recorded' ? 'nr' : null, v)); rows.append(d); };
-    add('Jobs Auto finished', rec(r.jobs_done), 'row-jobs');
+    add('Jobs Autogenics finished', rec(r.jobs_done), 'row-jobs');
     add('Handed back', rec(r.handed_back), 'row-handed' + (r.handed_back > 0 ? ' has' : ''));   // FEATURES: amber only when above 0
     // MERGE (the one addition of the merge brief): a fiber that carries proof runs says so here, in words, and nowhere
     // else. They were build-day test tasks nobody asked for: never bands, never notches, never sparks, never part of a

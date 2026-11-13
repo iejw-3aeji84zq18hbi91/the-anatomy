@@ -8,20 +8,20 @@
 <meta name="theme-color" content="#03050a">
 <title>The Anatomy</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="viewer.css?v=mweb9mux">
+<link rel="stylesheet" href="viewer.css?v=mwebkyjr">
 <!-- Where the data comes from. The app sets these two to its own addresses (same origin); ?feed= and ?burst= override them.
      Left empty, the page uses the defaults in src/main.js (feedUrl) and src/deeplink.js. See WIRING.md. -->
-<meta name="anatomy-feed" content="data/feed.json?v=mweb9mux">
-<meta name="anatomy-burst" content="data/burst.json?v=mweb9mux">
+<meta name="anatomy-feed" content="data/feed.json?v=mwebkyjr">
+<meta name="anatomy-burst" content="data/burst.json?v=mwebkyjr">
 <!-- INTRO: the opening sequence, cut to the track (src/intro.js, INTRO.md). "on" plays it when the page opens; missing or empty is off,
      so an embedding app chooses for itself. ?intro=1 / ?intro=0 override it. -->
 <meta name="anatomy-intro" content="on">
-<script type="module" src="src/main.js?v=mweb9mux"></script>
+<script type="module" src="src/main.js?v=mwebkyjr"></script>
 <!-- Sound (11 Nov): one self-contained module. It adds its own Sound button to the dock. Remove this line to remove the sound. -->
-<script type="module" src="src/sound.js?v=mweb9mux"></script>
+<script type="module" src="src/sound.js?v=mwebkyjr"></script>
 </head>
 <body>
-<canvas id="gl" aria-label="The Anatomy: Auto's muscle memory. Every fiber is one skill he learned."></canvas>
+<canvas id="gl" aria-label="The Anatomy: Autogenics' muscle memory. Every fiber is one skill he learned."></canvas>
 <!-- INTRO: the one line on the black frame while the sound waits for the first click or key press -->
 <p class="intro-begin" id="intro-begin" hidden>Click to begin</p>
 <!-- INTRO WORDS: the quiet Skip key of the sequence (lower right, clear of the app's corner), and the line of the story now
@@ -31,9 +31,9 @@
 
 <div id="ui" class="ui">
   <header class="lockup" id="lockup">
-    <p class="eyebrow">Autogenic</p>
+    <p class="eyebrow">Autogenics</p>
     <h1>The Anatomy</h1>
-    <p class="sub"><span>Auto's muscle memory.</span> <span>Every fiber is a skill he learned.</span></p>
+    <p class="sub"><span>Autogenics' muscle memory.</span> <span>Every fiber is a skill he learned.</span></p>
   </header>
 
   <!-- The right-hand column: totals, then whatever is open, stacked. The label layout keeps clear of the whole column. -->
@@ -54,13 +54,13 @@
       <div class="burst-bar" aria-hidden="true"><i id="burst-bar"></i></div>
       <dl class="burst-rows" id="burst-rows">
         <div class="row row-jobs"><dt>Jobs</dt><dd id="b-jobs">0</dd></div>
-        <div class="row"><dt>Done by Auto</dt><dd id="b-done">0</dd></div>
+        <div class="row"><dt>Done by Autogenics</dt><dd id="b-done">0</dd></div>
         <div class="row row-handed has"><dt>Handed to a person</dt><dd id="b-handed">0</dd></div>
         <div class="row"><dt>Wrong</dt><dd id="b-wrong">0</dd></div>
         <div class="row"><dt>Model calls</dt><dd id="b-calls">0</dd></div>
         <div class="row"><dt>Ran in</dt><dd id="b-ran"></dd></div>
       </dl>
-      <p class="card-key"><i class="key-spark"></i>Each bright spark is one job Auto finished himself.</p>
+      <p class="card-key"><i class="key-spark"></i>Each bright spark is one job Autogenics finished himself.</p>
       <p class="card-key"><i class="key-ember"></i>Each amber spark is one job handed to a person.</p>
       <p class="burst-caption" id="burst-caption"></p>
       <p class="burst-note" id="burst-note" hidden></p>
@@ -74,7 +74,7 @@
       <p class="card-origin" id="card-origin"></p>
       <dl class="card-rows" id="card-rows"></dl>
       <div class="card-keys">
-        <p class="card-key"><i class="key-band"></i><span>Each bright band is one job Auto finished himself.</span></p>
+        <p class="card-key"><i class="key-band"></i><span>Each bright band is one job Autogenics finished himself.</span></p>
         <p class="card-key"><i class="key-notch"></i><span>Each amber notch is one job handed back to the model.</span></p>
       </div>
     </aside>
@@ -100,7 +100,7 @@
           <div><dt><i class="sw sw-prac"></i>Brighter core</dt><dd>practised: clean runs, not jobs</dd></div>
           <div><dt><i class="sw sw-prov"></i>Blazing core</dt><dd>proven: has jobs done</dd></div>
           <div><dt><i class="sw sw-dark"></i>Dark fiber</dt><dd>staged, not switched on</dd></div>
-          <div><dt><i class="sw sw-band"></i>Bright band</dt><dd>one job Auto finished himself</dd></div>
+          <div><dt><i class="sw sw-band"></i>Bright band</dt><dd>one job Autogenics finished himself</dd></div>
           <div><dt><i class="sw sw-notch"></i>Amber notch</dt><dd>one job handed back to the model</dd></div>
           <div><dt><i class="sw sw-thick"></i>Thicker fiber</dt><dd>more jobs done</dd></div>
           <div data-if="strands" hidden><dt><i class="sw sw-twist"></i>Twisted pair</dt><dd>versions of one learned request</dd></div>
@@ -112,7 +112,7 @@
         <dl class="legend-list">
           <div><dt><i class="sw sw-glass"></i>Glass</dt><dd>learned</dd></div>
           <div><dt><i class="sw sw-taught"></i>White core</dt><dd>taught</dd></div>
-          <div><dt><i class="sw sw-gold"></i>Gold collars</dt><dd>admitted from the One Auto Library</dd></div>
+          <div><dt><i class="sw sw-gold"></i>Gold collars</dt><dd>admitted from the One Autogenics Library</dd></div>
           <div><dt><i class="sw sw-pearl"></i>Pearl sheath</dt><dd>certified by the Foundry</dd></div>
           <div><dt><i class="sw sw-etch"></i>Engraving</dt><dd>the skill's id, not a count</dd></div>
           <div><dt><i class="sw sw-lane"></i>Dashed lane</dt><dd>room for a skill, none there yet</dd></div>

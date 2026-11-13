@@ -8,9 +8,9 @@
 // LIGHT-MERGE: main.js carries five small hooks for this file, each marked LIGHT-MERGE there. Nothing else changes.
 // Merged file (see MERGE.md): the light lane's, with one line added in pose() (LAYOUT-MERGE) and one number changed in _labels() (MERGE).
 
-import { V3, Q, M4, bspline } from './math.js?v=mweb9mux';
-import * as ANAT from './anatomy.js?v=mweb9mux';
-import { RIG } from './renderer.js?v=mweb9mux';
+import { V3, Q, M4, bspline } from './math.js?v=mwebkyjr';
+import * as ANAT from './anatomy.js?v=mwebkyjr';
+import { RIG } from './renderer.js?v=mwebkyjr';
 
 const CPN = ANAT.CPN;
 const C = [0, -420, 0];          // where the plate stands: far below the anatomy, in clear air
@@ -68,7 +68,7 @@ export function pickSpecimens(model) {
 function facts(sp, mock) {
   const s = sp.skill, out = [], num = (v) => v.toLocaleString('en-US'), j = s.raw.jobs_done;
   if (sp.key === 'taught') out.push('taught by demonstration');
-  if (sp.key === 'library') out.push('admitted from the One Auto Library');
+  if (sp.key === 'library') out.push('admitted from the One Autogenics Library');
   if (s.jobs) out.push(`${num(s.jobs)} ${s.jobs === 1 ? 'job done' : 'jobs done'}`);
   else out.push(typeof j === 'number' && isFinite(j) ? '0 jobs done' : 'no jobs recorded');
   if (s.handed) out.push(`${num(s.handed)} handed back to the model`);

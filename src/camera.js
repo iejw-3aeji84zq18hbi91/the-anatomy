@@ -7,8 +7,8 @@
 // station and runs fast on the skims, whatever the spacing of the keys. A key flagged `along` is
 // passed travelling exactly the way it looks (that is how the lens threads the loop on its axis).
 
-import { V3, Q, clamp, mix, easeInOut, TAU } from './math.js?v=mweb9mux';
-import { PLATE, recordPitch } from './anatomy.js?v=mweb9mux';
+import { V3, Q, clamp, mix, easeInOut, TAU } from './math.js?v=mwebkyjr';
+import { PLATE, recordPitch } from './anatomy.js?v=mwebkyjr';
 
 const K_SAMPLES = 9, STEPS = 3200;
 const LOOP_MIN = 100, LOOP_MAX = 140;

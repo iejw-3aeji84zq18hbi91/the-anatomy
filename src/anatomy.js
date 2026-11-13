@@ -6,7 +6,7 @@
 // shaft of light is the world Y axis; the river passes in front of it and everything else stands
 // off to one side or the other.
 
-import { V3, Path, TAU, clamp, mix, smoothstep, packDiscs, bspline, rng } from './math.js?v=mweb9mux';
+import { V3, Path, TAU, clamp, mix, smoothstep, packDiscs, bspline, rng } from './math.js?v=mwebkyjr';
 
 export const CPN = 32;            // control points per fiber (uniform cubic B-spline)
 export const R0 = 0.19;           // radius of a fiber with no measured work
