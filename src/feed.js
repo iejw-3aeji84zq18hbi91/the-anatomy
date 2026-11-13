@@ -1,7 +1,7 @@
 // Feed -> model. Everything the picture shows is derived here from the document and nothing else.
 // Schema: autogenic.skill-map/1. null means "not recorded" and is carried through as null.
 
-import { hash32 } from './math.js';
+import { hash32 } from './math.js?v=mweb9mux';
 
 // The ten first-class muscles, in a fixed order. Colours are the brief's, lightly tuned for harmony.
 export const FAMILIES = [

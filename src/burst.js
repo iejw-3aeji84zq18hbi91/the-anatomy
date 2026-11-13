@@ -13,8 +13,8 @@
 // The counters are counted, never animated: at any replay time they are the number of sparks that have landed
 // (or stopped) by then, read from the same schedule the GPU draws.
 
-import { Program } from './glx.js';
-import { V3, Q, clamp, hash32 } from './math.js';
+import { Program } from './glx.js?v=mweb9mux';
+import { V3, Q, clamp, hash32 } from './math.js?v=mweb9mux';
 
 export const BURST_SCHEMA = 'autogenic.skill-burst/1';
 export const REPLAY_SECONDS = 14;          // the whole replay: first launch to last landing

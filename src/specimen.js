@@ -8,9 +8,9 @@
 // LIGHT-MERGE: main.js carries five small hooks for this file, each marked LIGHT-MERGE there. Nothing else changes.
 // Merged file (see MERGE.md): the light lane's, with one line added in pose() (LAYOUT-MERGE) and one number changed in _labels() (MERGE).
 
-import { V3, Q, M4, bspline } from './math.js';
-import * as ANAT from './anatomy.js';
-import { RIG } from './renderer.js';
+import { V3, Q, M4, bspline } from './math.js?v=mweb9mux';
+import * as ANAT from './anatomy.js?v=mweb9mux';
+import { RIG } from './renderer.js?v=mweb9mux';
 
 const CPN = ANAT.CPN;
 const C = [0, -420, 0];          // where the plate stands: far below the anatomy, in clear air

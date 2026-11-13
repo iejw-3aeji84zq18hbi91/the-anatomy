@@ -12,7 +12,7 @@
 // the light with the rest of the body. Light is direction: in the dark of the opening only the first fiber has light.
 // No number, date or caption is shown inside the sequence; no spark, burst or replay of events.
 
-import { V3, Q, clamp, mix, smoothstep } from './math.js';
+import { V3, Q, clamp, mix, smoothstep } from './math.js?v=mweb9mux';
 
 // ---------------------------------------------------------------- THE WORDS (the founder's; change a word or a time here, nothing else)
 // INTRO WORDS. Times are music positions in seconds. Each line arrives on its time (drawing itself in, left to right) and
@@ -45,7 +45,7 @@ export const HIT_LIGHT = 0.07;       // INTRO R2: the answer to a strong hit of 
 
 // Used only when the cue sheet cannot be read: the same measured tempo (96 a minute, bar lines at -0.137 + 2.5 n).
 const FALLBACK = { tempo: { downbeat: -0.137, bar: 2.5 }, moments: [{ t: 3.437, kind: 'fall' }, { t: 6.385, kind: 'enter' }], hits: [], envelope: null };
-const CUES_URL = new URL('../audio/ambient.cues.json', import.meta.url).href;
+const CUES_URL = new URL('../audio/ambient.cues.json?v=mweb9mux', import.meta.url).href;
 
 // The dark of the opening is air: how far the lens can see. At house light 0 the air is black some 22 units out (the
 // first fiber and its nearest neighbours only); at 1 it is the page's own air (FOG_IN in main.js, about 700 units).

@@ -8,17 +8,17 @@
 <meta name="theme-color" content="#03050a">
 <title>The Anatomy</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="viewer.css?v=mweb7t7h">
+<link rel="stylesheet" href="viewer.css?v=mweb9mux">
 <!-- Where the data comes from. The app sets these two to its own addresses (same origin); ?feed= and ?burst= override them.
      Left empty, the page uses the defaults in src/main.js (feedUrl) and src/deeplink.js. See WIRING.md. -->
-<meta name="anatomy-feed" content="data/feed.json">
-<meta name="anatomy-burst" content="data/burst.json">
+<meta name="anatomy-feed" content="data/feed.json?v=mweb9mux">
+<meta name="anatomy-burst" content="data/burst.json?v=mweb9mux">
 <!-- INTRO: the opening sequence, cut to the track (src/intro.js, INTRO.md). "on" plays it when the page opens; missing or empty is off,
      so an embedding app chooses for itself. ?intro=1 / ?intro=0 override it. -->
 <meta name="anatomy-intro" content="on">
-<script type="module" src="src/main.js?v=mweb7t7h"></script>
+<script type="module" src="src/main.js?v=mweb9mux"></script>
 <!-- Sound (11 Nov): one self-contained module. It adds its own Sound button to the dock. Remove this line to remove the sound. -->
-<script type="module" src="src/sound.js?v=mweb7t7h"></script>
+<script type="module" src="src/sound.js?v=mweb9mux"></script>
 </head>
 <body>
 <canvas id="gl" aria-label="The Anatomy: Auto's muscle memory. Every fiber is one skill he learned."></canvas>

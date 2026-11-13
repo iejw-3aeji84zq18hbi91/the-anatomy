@@ -5,19 +5,19 @@
 //   LAYOUT       the layout lane's edits: air by pose, the chain tendon on focus, the labels / rail checks
 //   MERGE        lines written at the merge, where two lanes meet
 
-import { buildModel, loadFeed } from './feed.js';
-import { buildAnatomy, combRows, partRows, recordPitch, CPN } from './anatomy.js';
-import { Renderer, drawRadius } from './renderer.js';
-import { Camera } from './camera.js';
-import { Overlay, numeral } from './overlay.js';
-import { M4, V3, Q, clamp, mix, bspline } from './math.js';
-import { Burst } from './burst.js';                           // FEATURES
-import { fiberLines } from './lines.js';                      // FEATURES
-import { Panels } from './panels.js';                         // FEATURES
-import { readLinks, openFocus } from './deeplink.js';         // FEATURES
-import { Specimen } from './specimen.js';                     // LIGHT-MERGE: the specimen plate (shot=specimen); everything about it lives in that one file
-import { qs, LAB, labQ } from './lab.js';                     // FIX V42: look-dev and measurement switches are read only with ?lab=1
-import { Intro } from './intro.js';                           // INTRO: the opening sequence, cut to the track (intro.js, INTRO.md)
+import { buildModel, loadFeed } from './feed.js?v=mweb9mux';
+import { buildAnatomy, combRows, partRows, recordPitch, CPN } from './anatomy.js?v=mweb9mux';
+import { Renderer, drawRadius } from './renderer.js?v=mweb9mux';
+import { Camera } from './camera.js?v=mweb9mux';
+import { Overlay, numeral } from './overlay.js?v=mweb9mux';
+import { M4, V3, Q, clamp, mix, bspline } from './math.js?v=mweb9mux';
+import { Burst } from './burst.js?v=mweb9mux';                           // FEATURES
+import { fiberLines } from './lines.js?v=mweb9mux';                      // FEATURES
+import { Panels } from './panels.js?v=mweb9mux';                         // FEATURES
+import { readLinks, openFocus } from './deeplink.js?v=mweb9mux';         // FEATURES
+import { Specimen } from './specimen.js?v=mweb9mux';                     // LIGHT-MERGE: the specimen plate (shot=specimen); everything about it lives in that one file
+import { qs, LAB, labQ } from './lab.js?v=mweb9mux';                     // FIX V42: look-dev and measurement switches are read only with ?lab=1
+import { Intro } from './intro.js?v=mweb9mux';                           // INTRO: the opening sequence, cut to the track (intro.js, INTRO.md)
 
 const SHOT = qs.get('shot');
 const STILL = qs.get('still') === '1';

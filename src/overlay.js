@@ -6,8 +6,8 @@
 // the short chip name, chip and label construction in build(), and two lines in showCard(). The newer panels
 // (keys, legend, burst counters, notices) live in panels.js. Lines marked MERGE were written at the merge.
 
-import { M4, clamp } from './math.js';
-import { PLATE_SEATS } from './anatomy.js';
+import { M4, clamp } from './math.js?v=mweb9mux';
+import { PLATE_SEATS } from './anatomy.js?v=mweb9mux';
 
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DASH = '–';
