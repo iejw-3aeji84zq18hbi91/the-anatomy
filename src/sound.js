@@ -37,7 +37,7 @@
 // The remembered on/off choice. The name changed on 11 Nov with "put sound to normal", so an "off"
 // left over from before that is forgotten once and the sound is on again; M still switches it off.
 const STORE = 'anatomy.sound.2';
-const TRACK = '';   // public copy: no track is published; the synthesised bed plays when the sound is switched on
+const TRACK = new URL('../audio/ambient.mp3', import.meta.url).href;
 const CROSS = 4;                             // seconds over which the end of the track fades into its beginning
 const LEVEL = 0.36;                          // the volume of the synthesised bed (heard only when there is no track)
 
@@ -66,7 +66,6 @@ function measure(buf) {                      // average and peak level of a deco
 
 async function bytes() {
   if (!S.bytes) {
-    if (!TRACK) throw new Error('no track');
     const r = await fetch(TRACK);
     if (!r.ok) throw new Error('no track');
     S.bytes = await r.arrayBuffer();
