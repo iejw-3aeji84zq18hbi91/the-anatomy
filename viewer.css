@@ -1,0 +1,456 @@
+/* The Anatomy: overlay.
+   TYPE AND CARDS (11 Nov, founder note 2). One type scale and one card, for every piece of text over the picture.
+
+   Type. The root size grows with the window (html, below): 14 px in the 975 x 934 pane, 16 px at 1440 x 900,
+   18.4 px at 2000 x 1250, never over 20. Every size, padding and gap of the overlay is in rem, so the whole overlay
+   scales as one piece. Nothing is set under 12 px. Serif for everything that names or counts something (the title,
+   panel and card titles, muscle names, every number); sans only for supporting facts, definitions, hints and buttons.
+   Sentence case; hierarchy by size and weight, not by tracking. System fonts only. The serif stack resolves to New York
+   in Safari and to Iowan Old Style in Chromium (the app), which has no medium or semibold: so serif is set at 400 or 600
+   only, the two weights both faces have, and nothing is a weight heavier in one browser than in the other.
+
+   Cards. Every panel, plate, chip rail and dock is the same card: near-opaque deep ink, one fine border, 8 px corners
+   (5 on chips and buttons), one soft shadow. No text sits on a see-through plate. Colour means something or is not
+   there: a muscle's own hue is a rule on its label, chip and card; amber is a hand-back; the mock marking is amber.
+
+   No inline styles anywhere; a family's colour arrives as the --c custom property. No backdrop-filter. */
+:root {
+  --serif: ui-serif, "New York", "Iowan Old Style", Georgia, serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* text. On the card over a white fiber (the worst case) these measure 16.5, 10.7 and 7.1 to 1 */
+  --ink: #f4f1ea;                          /* names, numbers, body */
+  --ink-2: #c8c4bb;                        /* facts, definitions, the label of a value */
+  --ink-3: #a3a098;                        /* hints, plate numerals, "Not recorded" */
+
+  /* the card */
+  --card: rgba(9, 11, 17, 0.97);
+  --well: #161a27;                         /* buttons and chips, on a card */
+  --well-up: #1f2433;
+  --line: rgba(255, 255, 255, 0.13);       /* the one border */
+  --line-up: rgba(255, 255, 255, 0.36);
+  --hair: rgba(255, 255, 255, 0.09);       /* rules inside a card */
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 36px rgba(0, 0, 0, 0.5);
+  --r: 8px;
+  --r-s: 5px;
+
+  /* colour that means something */
+  --amber: #ff9a2e;                        /* a hand-back, in the picture's own amber (swatches) */
+  --handed: #ffb96a;                       /* a hand-back, as text */
+  --mock: #f2b84e;                         /* invented data */
+  --mock-ink: #1a1205;
+  --c: #9aa3b5;                            /* a family's hue; set from script */
+
+  /* the type scale */
+  --f-display: 2.75rem;                    /* the title */
+  --f-num: 1.75rem;                        /* headline numbers */
+  --f-title: 1.375rem;                     /* a card's title */
+  --f-head: 1.125rem;                      /* panel titles */
+  --f-name: 1.0625rem;                     /* muscle names */
+  --f-body: 1rem;
+  --f-fact: max(12px, 0.875rem);           /* supporting facts, definitions, buttons */
+  --f-micro: max(12px, 0.75rem);           /* the eyebrow, key caps */
+
+  --row: 0.32rem;                          /* above and below a row of a table of values */
+  --pad: clamp(24px, 2.58vw - 1.2px, 44px);
+  --top: clamp(20px, 1.75vw, 32px);
+}
+/* The root size: by the window's width, held back in a short window so the right-hand column still fits. */
+html { font-size: clamp(13.75px, min(0.43vw + 9.8px, 1.05vh + 6.55px), 20px); }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #03050a; color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body { font-size: var(--f-body); }
+/* FIX V25/V30: the picture opens on black and fades in. The canvas has its own black ground and is clear until the first
+   full frame has been presented (main.js adds .live to the body then); the panels follow a moment later. */
+#gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; cursor: grab; touch-action: none; outline: none; background: #03050a; opacity: 0; transition: opacity 0.9s ease; }
+.live #gl { opacity: 1; }
+#gl.over { cursor: pointer; }
+#gl.dragging { cursor: grabbing; }
+.ui { position: fixed; inset: 0; pointer-events: none; font-variant-numeric: tabular-nums lining-nums; user-select: none; -webkit-user-select: none; opacity: 0; transition: opacity 0.6s ease 0.3s; }
+.live .ui { opacity: 1; }
+/* ui=0 hides every panel, but never the line that says the numbers are invented (FIX V17) */
+.no-ui .ui > *:not(.topright), .no-ui .topright > *:not(#mock) { display: none !important; }
+.no-ui .banner { width: auto; min-width: 0; }
+.still *, .still *::before, .still *::after { transition: none !important; animation: none !important; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+button:focus:not(:focus-visible) { outline: none; }
+
+/* ---------------------------------------------------------------- the card
+   One surface for everything that carries text. */
+.lockup, .totals, .card, .burst, .legend, .dock-main, .label::before, .tip, .caption, .notice, .empty, .tool-label {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow);
+}
+
+/* ---------------------------------------------------------------- title block, top left */
+.lockup { position: absolute; left: var(--pad); top: var(--top); min-width: 19rem; padding: 0.9rem 1.35rem 1rem 1.2rem; }
+.eyebrow { margin: 0 0 0.6rem; font: 600 var(--f-micro)/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+h1 { margin: 0; font: 400 var(--f-display)/1.04 var(--serif); letter-spacing: -0.012em; color: var(--ink); white-space: nowrap; }
+.sub { margin: 0.6rem 0 0; font: 400 var(--f-body)/1.42 var(--serif); color: var(--ink-2); }
+.sub span { display: block; white-space: nowrap; }
+
+/* ---------------------------------------------------------------- totals strip (and, while it plays, the burst counters), top right */
+.topright { position: absolute; right: var(--pad); top: var(--top); display: flex; flex-direction: column; align-items: flex-end; gap: 0.6rem; max-width: calc(100vw - 2 * var(--pad)); max-height: calc(100vh - var(--top) - 208px); }
+.totals { flex: none; display: flex; align-items: stretch; margin: 0; overflow: hidden; }
+.tot { display: flex; flex-direction: column; justify-content: center; min-width: 5.2rem; padding: 0.55rem 1rem 0.6rem; border-left: 1px solid var(--hair); }
+.tot:first-child { border-left: 0; }
+.tot dt { font: 400 var(--f-num)/1.05 var(--serif); letter-spacing: -0.005em; color: var(--ink); }
+.tot dd { margin: 0.25rem 0 0; font: 400 var(--f-fact)/1.2 var(--sans); color: var(--ink-2); white-space: nowrap; }
+.tot dd::first-letter { text-transform: uppercase; }
+/* The mock marking: a solid amber bar the width of the strip, right under it. (width 0 and min-width 100%: a banner never
+   makes the column wider than the strip, however long its sentence; it takes the column's width and wraps.) */
+.banner { flex: none; align-self: flex-end; width: 0; min-width: 100%; margin: 0; padding: 0.5rem 0.95rem 0.55rem; font: 600 var(--f-fact)/1.35 var(--sans); color: var(--mock-ink); background: var(--mock); border-radius: var(--r); box-shadow: var(--shadow); }
+/* FOUNDER, 11 Nov 5:32 PM: "i know its mock data remove that its taking up the view". The amber banner is switched off
+   on purpose. The Mock cell in the totals strip is the one mark that stays, so a screenshot still cannot pass for a
+   record. Do not restore the banner; to bring it back for an outside showing, delete the next line. */
+#mock { display: none !important; }
+/* FOUNDER, 12 Nov 6:21 PM: "perfect remove mock label and reopen". The Mock cell of the totals strip is off as well, on his
+   order. window.__MM.stats.mock and the chip on a fiber's card still say when the loaded feed is invented. Do not restore. */
+/* public demo copy: the cell that says the numbers are invented is shown */
+/* FIX V17: on an invented feed the totals strip carries the word itself, so no crop of the strip passes for a record */
+.tot-mock { background: rgba(242, 184, 78, 0.14); border-left-color: rgba(242, 184, 78, 0.45); }
+.tot-mock dt, .tot-mock dd { color: var(--mock); }
+.tot-mock dd { font-weight: 600; }
+.cchip.cchip-mock { font: 600 var(--f-fact)/1 var(--sans); color: var(--mock-ink); background: var(--mock); border-color: var(--mock); }
+.empty { position: absolute; left: 50%; top: 41%; margin: 0; transform: translate(-50%, -50%); padding: 0.9rem 1.7rem 1rem; font: 400 var(--f-title)/1.25 var(--serif); color: var(--ink); white-space: nowrap; }
+.caption, .notice { flex: none; margin: 0; white-space: nowrap; }
+.caption { padding: 0.6rem 1.05rem 0.65rem; font: 400 var(--f-body)/1.25 var(--serif); color: var(--ink); }
+/* FIX V34: the replay caption names what is replayed, and on a second line what a spark is */
+.caption-replay { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; }
+.cap-head { font-weight: 600; }
+.cap-note { font: 400 var(--f-fact)/1.3 var(--sans); color: var(--ink-2); }
+/* MERGE: the specimen plate (specimen.js, light lane) puts its own caption straight into .ui and sets top / bottom from
+   script. In the base stylesheet .caption was absolutely placed and centred; here it is a row of the right-hand column,
+   so the plate's caption gets its place back with this one rule. */
+.ui > .caption { position: absolute; left: 50%; transform: translateX(-50%); }
+/* The plate's caption is a foot line: set small and low, and centred under the fibers (the right two thirds of the
+   frame) instead of under the whole window, so it stands clear of the column of labels on the left and of the corner
+   on the right. In a wide, short window the sixth label used to run into it (it did before this pass as well).
+   (specimen.js sets bottom: 14px on the element; the stylesheet has the last word.) */
+.ui > .caption { left: 57%; bottom: 10px !important; padding: 0.3rem 0.95rem 0.34rem; font: 400 var(--f-fact)/1.25 var(--serif); color: var(--ink-2); }
+.notice { padding: 0.6rem 1.05rem 0.65rem; font: 400 var(--f-body)/1.3 var(--serif); color: var(--ink); }
+
+/* ---------------------------------------------------------------- muscle labels and leader lines
+   A label is a small card: the plate numeral and the name in serif, the facts under it in sans (on one line in a wide
+   window, one fact to a line under 1600 px: see the compact label, below), and the muscle's hue as a rule on the side
+   that faces its dot. The leader runs from the dot on the muscle to that side.
+   A label is an annotation on the picture, so its card is cut close: bigger type already makes a bigger box, and every
+   pixel of box is a pixel of fiber the layout has to find room for. overlay.js keeps a box clear round each label: the
+   element's own box plus 8 px left and right and 6 px above and below. The card is drawn inside that box (::before,
+   5 px and 3 px beyond the element), so two cards are never closer than 6 px and never touch a panel. */
+.labels, .leaders { position: absolute; inset: 0; }
+.leader { position: absolute; left: 0; top: 0; opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
+.leader.on { opacity: 1; }
+.leader i { position: absolute; left: 0; top: 0; display: block; will-change: transform; }
+.leader .seg { width: 1px; height: 1px; background: rgba(244, 241, 234, 0.72); transform-origin: 0 50%; }
+.leader i.seg:nth-child(2) { display: none; }
+.leader .dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1.5px rgba(2, 3, 8, 0.9), 0 0 0 4px rgba(2, 3, 8, 0.35), 0 0 0 5px var(--c); }
+.label { position: absolute; left: 0; top: 0; will-change: transform; display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem; margin: 0; padding: 0.25rem 0.375rem 0.25rem 0.55rem; border: 0; background: none; text-align: left; white-space: nowrap; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+.label::before { content: ""; position: absolute; inset: -3px -5px; z-index: -1; box-shadow: inset 3px 0 0 var(--c), var(--shadow); }
+.label.on { opacity: 1; pointer-events: auto; }
+.label.flip { align-items: flex-end; padding: 0.25rem 0.55rem 0.25rem 0.375rem; text-align: right; }
+.label.flip::before { box-shadow: inset -3px 0 0 var(--c), var(--shadow); }
+.label:hover::before { border-color: var(--line-up); }
+.l-name { display: flex; align-items: baseline; gap: 0.45rem; font: 400 var(--f-name)/1.15 var(--serif); color: var(--ink); }
+.label.flip .l-name { flex-direction: row-reverse; }
+.l-num { font: normal 400 max(12px, 0.84em)/1 var(--serif); letter-spacing: 0.03em; color: var(--ink-3); }
+.l-fact { font: 400 var(--f-fact)/1.25 var(--sans); color: var(--ink-2); }
+.label.is-empty .l-name { color: var(--ink-2); }
+.label.is-empty .l-fact { color: var(--ink-3); }
+.label.is-unformed .l-name { color: var(--ink-2); }             /* growth: a form none of whose fibers has formed yet (FIX V32) */
+.label.is-unformed .l-fact { color: var(--ink-3); }
+/* a specimen label keeps to the room left of its fiber (specimen.js frame): facts wrap, the title is cut */
+.label.spec .l-fact { max-width: 100%; white-space: normal; overflow-wrap: break-word; text-wrap: balance; }
+.label.spec .l-cl { display: inline-block; max-width: 100%; }      /* the line breaks between two facts, not inside one (in the pane it may: see the compact arrangement) */
+.label.spec .l-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.l-title { font-family: var(--serif); color: var(--ink-3); }    /* the third line of a specimen label: the skill's own title */
+.tool-label { position: absolute; left: 0; top: 0; padding: 0.3rem 0.6rem 0.35rem; font: 400 var(--f-fact)/1.15 var(--serif); color: var(--ink); border-radius: var(--r-s); white-space: nowrap; opacity: 0; transition: opacity 0.4s ease; }
+.tool-label.on { opacity: 1; }
+
+/* ---------------------------------------------------------------- panels: proof card (right), burst counters, legend */
+.card, .burst { pointer-events: auto; box-shadow: inset 0 2px 0 var(--c), var(--shadow); scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.28) transparent; }
+.card { position: relative; flex: 0 1 auto; min-height: 0; width: 22.5rem; overflow: auto; padding: 1.15rem 1.35rem 1.05rem; }
+.card-close { position: absolute; right: 0.85rem; top: 0.85rem; min-width: 1.75rem; height: 1.6rem; padding: 0 0.45rem; font: 600 var(--f-micro)/1 var(--sans); letter-spacing: 0.02em; color: var(--ink-2); background: var(--well); border: 1px solid var(--line); border-radius: var(--r-s); cursor: pointer; }
+.card-close:hover { color: var(--ink); border-color: var(--line-up); }
+.card-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 3.1rem 0.8rem 0; }
+.cchip { display: inline-flex; align-items: center; gap: 0.45rem; height: 1.6rem; padding: 0 0.6rem; font: 400 var(--f-fact)/1 var(--serif); color: var(--ink); background: var(--well); border: 1px solid var(--line); border-radius: var(--r-s); white-space: nowrap; }
+.chip-dot { flex: none; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--c); }
+.card-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; margin: 0; font: 400 var(--f-title)/1.22 var(--serif); letter-spacing: -0.005em; color: var(--ink); overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; }
+.card.expanded .card-title { display: block; font-size: var(--f-head); }
+.card-more { margin: 0.35rem 0 0; padding: 0; font: 400 var(--f-fact)/1.3 var(--sans); color: var(--ink-2); background: none; border: 0; border-bottom: 1px solid var(--line-up); cursor: pointer; }
+.card-more:hover { color: var(--ink); }
+.card-origin { margin: 0.4rem 0 0; font: 400 var(--f-fact)/1.4 var(--sans); color: var(--ink-2); }
+.card-rows, .burst-rows { margin: 0.8rem 0 0; border-top: 1px solid var(--hair); }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: var(--row) 0; border-bottom: 1px solid var(--hair); }
+.row dt { flex: none; font: 400 var(--f-fact)/1.3 var(--sans); color: var(--ink-2); }
+.row dd { margin: 0; font: 400 var(--f-body)/1.3 var(--serif); color: var(--ink); text-align: right; overflow-wrap: anywhere; }
+.row dd.nr { font: 400 var(--f-fact)/1.3 var(--sans); color: var(--ink-3); }
+.row-jobs dd:not(.nr) { font-size: var(--f-title); line-height: 1.1; }
+.row-handed.has dd { color: var(--handed); }
+/* MERGE: the Proof runs and Proof hand-backs lines on the card of a fiber that carries them: the count, then the words
+   on a line of their own under it, so both notes break the same way */
+.row-proof { flex-wrap: wrap; row-gap: 0.05rem; }
+.row-proof dd { display: contents; }
+.row-proof .proof-n { font: 400 var(--f-body)/1.3 var(--serif); color: var(--ink); }
+.row-proof .proof-note { flex: 1 0 100%; font: 400 var(--f-fact)/1.3 var(--sans); color: var(--ink-2); text-align: right; overflow-wrap: normal; }
+.card-key { display: flex; align-items: flex-start; gap: 0.75rem; margin: 0.5rem 0 0; font: 400 var(--f-fact)/1.38 var(--sans); color: var(--ink-2); }
+.card-keys { margin-top: 0.8rem; }
+.burst-rows + .card-key { margin-top: 0.75rem; }
+/* FIX V29: a card that would overflow its column (overlay.js fitCard) */
+.card.tight .card-keys { display: none; }
+.card.tight .row { padding-top: calc(var(--row) * 0.6); padding-bottom: calc(var(--row) * 0.6); }
+.card.tight .card-chips { margin-bottom: 0.55rem; }
+.card.tight .cchip { height: 1.45rem; padding: 0 0.45rem; }
+/* FIX V29 (last pass): and if it still would scroll, the rows close up once more. Nothing is left out: every line stays */
+.card.tighter { padding-top: 0.75rem; padding-bottom: 0.5rem; }
+.card.tighter .card-close { top: 0.55rem; }
+.card.tighter .card-chips { gap: 0.3rem; margin-bottom: 0.4rem; }
+.card.tighter .cchip { height: 1.3rem; }
+.card.tighter .card-title { font-size: var(--f-head); }
+.card.tighter .card-origin { margin-top: 0.1rem; line-height: 1.25; }
+.card.tighter .row { padding-top: 1px; padding-bottom: 1px; }
+.card.tighter .row dt, .card.tighter .row dd, .card.tighter .row-proof .proof-n { line-height: 1.15; }
+.card.tighter .card-rows { margin-top: 0.2rem; }
+.card.tighter .row-proof .proof-note { line-height: 1.12; }
+/* the small pictures beside a key line: a piece of fiber with the mark on it. Sized in em, so they grow with the type */
+.key-band, .key-notch, .key-spark, .key-ember { position: relative; flex: none; width: 1.9em; height: 0.5em; margin-top: 0.44em; font-size: 1rem; border-radius: 0.25em; background: linear-gradient(180deg, rgba(243, 238, 227, 0.34), rgba(243, 238, 227, 0.07) 45%, rgba(243, 238, 227, 0.26)); }
+.key-band::after { content: ""; position: absolute; left: calc(50% - 0.14em); top: -0.16em; width: 0.28em; height: 0.82em; border-radius: 1px; background: #fff8ea; box-shadow: 0 0 7px 1px var(--c), 0 0 2px #fff; }
+.key-notch::after { content: ""; position: absolute; left: calc(50% - 0.14em); top: -0.07em; width: 0.28em; height: 0.36em; border-radius: 1px; background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.key-spark::after, .key-ember::after { content: ""; position: absolute; left: 22%; top: 21%; width: 56%; height: 58%; border-radius: 2px; }
+.key-spark::after { background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, var(--c) 55%, #fff 100%); box-shadow: 6px 0 8px -1px var(--c); }
+.key-ember::after { background: linear-gradient(90deg, rgba(255, 154, 46, 0) 0%, var(--amber) 60%, #ffd9a6 100%); box-shadow: 6px 0 8px -1px var(--amber); }
+
+/* burst counters: sits under the totals while a burst replays. Its width stops short of the frame main.js keeps for the sparks (W - 392). */
+.burst { position: relative; flex: 0 1 auto; min-height: 0; overflow: auto; width: min(20rem, calc(384px - var(--pad))); padding: 1.1rem 1.35rem 1.1rem; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; min-height: 1.6rem; padding-right: 3.1rem; }
+.panel-title { margin: 0; font: 600 var(--f-head)/1.2 var(--serif); color: var(--ink); }
+.burst-where { margin: 0.3rem 0 0; font: 400 var(--f-body)/1.35 var(--serif); color: var(--ink-2); }
+.burst-where .l-num { font-size: 0.9em; color: inherit; }
+.burst-bar { height: 3px; margin: 0.75rem 0 0; background: var(--hair); border-radius: 2px; overflow: hidden; }
+.burst-bar i { --p: 0; display: block; width: calc(var(--p) * 100%); height: 100%; background: var(--ink); }
+.burst-rows { margin-top: 0.15rem; border-top: 0; }
+.burst-rows .row dd { font-size: 1.1875rem; line-height: 1.15; }
+.burst-rows .row-jobs dd { font-size: var(--f-num); line-height: 1.05; }
+.burst-rows .row dd.nr { font: 400 var(--f-fact)/1.3 var(--sans); }
+.burst-caption { margin: 0.75rem 0 0; padding-top: 0.65rem; border-top: 1px solid var(--hair); font: 400 var(--f-fact)/1.45 var(--sans); color: var(--ink-2); }
+.burst-caption span { display: block; }
+.burst-caption span:first-child { font-weight: 500; color: var(--ink); }
+.burst-note { margin: 0.5rem 0 0; font: 400 var(--f-fact)/1.4 var(--sans); color: var(--ink); }
+.burst.is-quiet .burst-where { color: var(--ink); }
+.burst.is-quiet .burst-bar, .burst.is-quiet .burst-rows, .burst.is-quiet .card-key, .burst.is-quiet .burst-caption { display: none; }
+
+/* legend: a drawer that opens on top of the dock. A glossary: the term in serif beside its swatch, what it means in sans.
+   It lives in the dock's wrapper but out of its flow (position: absolute, standing on the dock's top edge), so the
+   wrapper's box is the dock alone and overlay.js keeps the labels clear of the drawer as a box of its own (_measure).
+   In the flow, the two made one box as wide as the dock and as tall as both: with the legend open the labels kept off
+   nearly half the frame. */
+.legend { position: absolute; left: 0; bottom: calc(100% + 0.7rem); display: grid; grid-template-columns: auto auto; column-gap: 2.75rem; row-gap: 0.85rem; width: fit-content; max-width: 100%; max-height: calc(100vh - var(--top) - 17.1rem - 36px); overflow-y: auto; padding: 1.1rem 1.45rem 1rem; pointer-events: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.28) transparent; }
+.legend-col:nth-child(2) .panel-title { padding-right: 2.4rem; }
+.legend-list { margin: 0.6rem 0 0; }
+.legend-list > div { display: grid; grid-template-columns: 9.4rem auto; align-items: center; column-gap: 0.75rem; min-height: 1.72rem; }
+.legend-list dt { display: flex; align-items: center; gap: 0.75rem; font: 400 var(--f-body)/1.15 var(--serif); color: var(--ink); white-space: nowrap; }
+.legend-list dd { margin: 0; font: 400 var(--f-fact)/1.2 var(--sans); color: var(--ink-2); white-space: nowrap; }
+.legend-end { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; min-width: 0; padding-top: 0.8rem; border-top: 1px solid var(--hair); }
+.legend-foot { display: flex; align-items: center; gap: 0.75rem; margin: 0; font: 400 var(--f-fact)/1.3 var(--sans); color: var(--ink); white-space: nowrap; }
+/* the swatches: a piece of fiber, sized in em */
+.sw { position: relative; flex: none; width: 2.2em; height: 0.5em; font-size: 1rem; border-radius: 0.25em; background: #232838; }
+.sw-dark { background: linear-gradient(180deg, #5d5a66, #24232b 45%, #4a4852); }
+/* FIX V19: the two tiers of resting light, the engraving and the empty lane have rows of their own */
+.sw-lit { background: linear-gradient(180deg, #6d5630, #2a2114 30%, #c99a4e 46%, #c99a4e 54%, #2a2114 70%, #6d5630); box-shadow: none; }
+.sw-prac { background: linear-gradient(180deg, #6d5630, #2a2114 26%, #ffd98e 42%, #ffd98e 58%, #2a2114 74%, #6d5630); box-shadow: 0 0 5px rgba(255, 205, 120, 0.45); }
+.sw-prov { background: linear-gradient(180deg, #d9a653, #fff3d0 40%, #fff3d0 60%, #d9a653); box-shadow: 0 0 9px rgba(255, 205, 120, 0.9); }
+.sw-prov::after { content: ""; position: absolute; left: calc(50% - 0.14em); top: -0.16em; width: 0.28em; height: 0.82em; border-radius: 1px; background: #fff; }
+.sw-etch { background: repeating-linear-gradient(90deg, rgba(255, 199, 106, 0.5) 0 0.21em, rgba(20, 16, 8, 0.9) 0.21em 0.29em, rgba(255, 199, 106, 0.5) 0.29em 0.43em, rgba(20, 16, 8, 0.9) 0.43em 0.57em, rgba(255, 199, 106, 0.5) 0.57em 0.93em); }
+.sw-lane { height: 0.22em; background: repeating-linear-gradient(90deg, rgba(196, 238, 102, 0.55) 0 0.36em, transparent 0.36em 0.64em); }
+.sw-thick { height: 0.8em; border-radius: 0.4em; background: linear-gradient(180deg, rgba(255, 199, 106, 0.95), rgba(255, 199, 106, 0.2) 45%, rgba(255, 199, 106, 0.8)); }
+.sw-band { background: linear-gradient(180deg, rgba(255, 199, 106, 0.95), rgba(255, 199, 106, 0.22) 45%, rgba(255, 199, 106, 0.8)); }
+.sw-band::after { content: ""; position: absolute; left: calc(50% - 0.14em); top: -0.16em; width: 0.28em; height: 0.82em; border-radius: 1px; background: #fff7e6; box-shadow: 0 0 6px 1px #ffc76a; }
+.sw-notch { background: linear-gradient(180deg, rgba(255, 199, 106, 0.95), rgba(255, 199, 106, 0.22) 45%, rgba(255, 199, 106, 0.8)); }
+.sw-notch::after { content: ""; position: absolute; left: calc(50% - 0.14em); top: -0.07em; width: 0.28em; height: 0.36em; border-radius: 1px; background: var(--amber); box-shadow: 0 0 5px var(--amber); }
+.sw-glass { background: linear-gradient(180deg, rgba(255, 199, 106, 0.95), rgba(255, 199, 106, 0.16) 45%, rgba(255, 199, 106, 0.8)); }
+.sw-taught { background: linear-gradient(180deg, #8f79d8, #1d1736 36%, #fff 46%, #fff 54%, #1d1736 64%, #8f79d8); }
+.sw-gold { background: linear-gradient(180deg, rgba(166, 139, 255, 0.95), rgba(166, 139, 255, 0.2) 45%, rgba(166, 139, 255, 0.8)); }
+.sw-gold::before, .sw-gold::after { content: ""; position: absolute; top: -0.11em; width: 0.36em; height: 0.72em; border-radius: 1px; background: linear-gradient(180deg, #ffe2a0, #a8742a); }
+.sw-gold::before { left: 0.36em; }
+.sw-gold::after { right: 0.36em; }
+.sw-pearl { background: linear-gradient(180deg, #e9e6ef, #8d8a98 55%, #c9c5d3); }
+.sw-scaf { background: #10141e; border: 1px solid rgba(243, 238, 227, 0.3); }
+.sw-twist { background: repeating-linear-gradient(115deg, #5aa2ff 0 0.29em, #1a2440 0.29em 0.43em, #cfe0ff 0.43em 0.71em, #1a2440 0.71em 0.86em); }
+.sw-chain { height: 0.22em; background: #8a8782; }
+
+/* ---------------------------------------------------------------- hover tooltip */
+.tip { position: absolute; left: 0; top: 0; z-index: 5; max-width: 24rem; padding: 0.55rem 0.9rem 0.6rem 1rem; box-shadow: inset 3px 0 0 var(--c), var(--shadow); }
+.tip-fam { display: block; margin-bottom: 0.15rem; font: 400 var(--f-fact)/1.25 var(--serif); color: var(--ink-2); }
+.tip-name { display: block; font: 400 var(--f-body)/1.3 var(--serif); color: var(--ink); overflow-wrap: anywhere; }
+
+/* ---------------------------------------------------------------- the dock: growth, the ten families, the keys.
+   One card along the bottom. It stops short of the bottom-right 180 x 200, which stays empty.
+   .dock is the wrapper the label layout keeps clear of; the legend drawer stands on it (see the legend, above). */
+.dock { position: absolute; left: var(--pad); bottom: 14px; width: min(calc(100vw - var(--pad) - 196px), 90rem); display: flex; flex-direction: column; gap: 0.7rem; }
+.dock-main { --h: max(24px, 1.6rem); display: flex; flex-direction: column; gap: 0.3rem; padding: 0.45rem 0.6rem 0.5rem; pointer-events: auto; }
+.growth { display: flex; align-items: center; gap: 0.8rem; min-height: max(22px, 1.4rem); }
+.g-title { flex: none; padding-left: 0.25rem; font: 600 var(--f-body)/1 var(--serif); color: var(--ink); }
+.g-play { flex: none; min-width: 3.5rem; height: max(22px, 1.4rem); padding: 0 0.65rem; font: 500 var(--f-fact)/1 var(--sans); color: var(--ink); background: var(--well); border: 1px solid var(--line); border-radius: var(--r-s); cursor: pointer; }
+.g-play:hover, .key:hover, .chip:hover { background: var(--well-up); border-color: var(--line-up); }
+/* The date the slider stands on is a fixed read-out at the end of the track, beside the count (it was a bubble over the thumb). */
+.g-track { flex: 1; display: flex; align-items: center; gap: 0.8rem; min-width: 0; height: max(22px, 1.4rem); }
+.g-date { order: 2; flex: none; min-width: 6.4em; font: 400 var(--f-fact)/1 var(--serif); color: var(--ink-2); text-align: right; white-space: nowrap; }
+.g-range { --g: 100%; flex: 1; min-width: 0; height: 1.2rem; margin: 0; background: none; appearance: none; -webkit-appearance: none; cursor: pointer; }
+.g-range::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(90deg, var(--ink) 0, var(--ink) var(--g), rgba(255, 255, 255, 0.24) var(--g), rgba(255, 255, 255, 0.24) 100%); }
+.g-range::-webkit-slider-thumb { -webkit-appearance: none; width: 0.9rem; height: 0.9rem; margin-top: calc(1px - 0.45rem); background: #0b0d14; border: 2px solid var(--ink); border-radius: 50%; box-shadow: 0 0 0 3px rgba(9, 11, 17, 0.9); }
+.g-range::-moz-range-track { height: 2px; background: rgba(255, 255, 255, 0.24); }
+.g-range::-moz-range-progress { height: 2px; background: var(--ink); }
+.g-range::-moz-range-thumb { width: 0.75rem; height: 0.75rem; background: #0b0d14; border: 2px solid var(--ink); border-radius: 50%; }
+.g-count { flex: none; min-width: 14.5em; padding-left: 0.85rem; border-left: 1px solid var(--hair); font: 400 var(--f-fact)/1.5 var(--serif); color: var(--ink); text-align: right; white-space: nowrap; }
+
+/* family chips: hue bar, name (or, where there is no room for it, the plate numeral), count.
+   The ten must fit their row in both faces the serif stack resolves to: Iowan Old Style (Chromium, the app) and New York
+   (Safari), which sets about a tenth wider. So the type here stops growing at 15 px, and the breakpoints below leave room. */
+.chips { display: flex; gap: 0.25rem; }
+.chip { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 0.35rem; height: var(--h); padding: 0 0.5rem 0 0; font: 400 clamp(12px, 0.875rem, 15px)/1.3 var(--serif); color: var(--ink); background: var(--well); border: 1px solid var(--line); border-radius: var(--r-s); cursor: pointer; text-align: left; overflow: hidden; }
+.chip::before { content: ""; flex: none; align-self: stretch; width: 3px; margin-right: 0.15rem; background: var(--c); }
+.chip-num { display: none; flex: none; font-style: normal; font-weight: 400; letter-spacing: 0.02em; color: var(--ink-2); }
+.chip-name, .chip-short { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip-short { display: none; }
+.chip-n { flex: none; margin-left: auto; padding-left: 0.15rem; color: var(--ink); }
+.chip.is-current { border-color: var(--c); box-shadow: inset 0 0 0 1px var(--c); }
+.chip.is-empty { background: none; border-style: dashed; border-color: rgba(255, 255, 255, 0.3); color: var(--ink-2); }
+.chip.is-empty::before { background: none; box-shadow: inset 0 0 0 1px var(--c); opacity: 0.85; }
+.chip.is-empty .chip-n { color: var(--ink-2); }
+
+/* The key row holds six keys now (the Sound key is added at run time by sound.js, with the class of the others), then
+   the hint, then the note about fibers with no date. Nothing in it is ever cut: the note takes two lines where one
+   will not fit, and drops under the keys where even that will not; the hint shows only where there is no note to
+   make room for (six keys, the hint and the note are wider than the dock at every size). */
+.dock-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 1rem; min-height: var(--h); }
+.keys { flex: none; display: flex; align-items: center; gap: 0.3rem; }
+.key { display: inline-flex; align-items: center; gap: 0.45rem; height: var(--h, 1.6rem); padding: 0 0.65rem 0 0.22rem; font: 500 var(--f-fact)/1 var(--sans); color: var(--ink); background: var(--well); border: 1px solid var(--line); border-radius: var(--r-s); cursor: pointer; white-space: nowrap; }
+.key kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 1.25rem; height: calc(var(--h, 1.6rem) - 0.44rem); padding: 0 0.3rem; font: 600 var(--f-micro)/1 var(--sans); color: var(--ink-2); background: rgba(255, 255, 255, 0.08); border-radius: 3.5px; }
+.key[aria-pressed="true"], .key[aria-expanded="true"] { background: var(--well-up); border-color: var(--line-up); }
+.key[aria-pressed="true"] kbd, .key[aria-expanded="true"] kbd { color: #0b0d14; background: var(--ink-2); }
+.key.legend-specimen { padding: 0 0.85rem; }
+.hint { display: none; flex: none; margin: 0; font: 400 var(--f-fact)/1 var(--sans); color: var(--ink-2); white-space: nowrap; }
+.hint i { font-style: normal; margin: 0 0.4em; color: var(--ink-3); }
+.g-note { flex: 1 1 14rem; min-width: 14rem; margin: 0; font: 400 var(--f-fact)/1.2 var(--sans); color: var(--ink-2); text-align: right; text-wrap: balance; }
+.g-note:empty { display: none; }
+
+.fatal { position: fixed; left: 50%; top: 50%; max-width: 34rem; margin: 0; transform: translate(-50%, -50%); font: 400 var(--f-head)/1.5 var(--serif); color: #fff; text-align: center; }
+
+/* ---------------------------------------------------------------- taller, narrower and shorter windows */
+@media (min-height: 1040px) {
+  :root { --row: 0.42rem; }                 /* room to spare: the tables of values breathe */
+}
+@media (max-width: 1899px) {
+  .chip-name { display: none; }             /* the short family name; the full one is on the label and in the tooltip */
+  .chip-short { display: block; }
+}
+@media (min-width: 1800px) {
+  .dock-foot:has(.g-note:empty) .hint { display: block; }      /* the hint: in a wide window, when there is no note */
+}
+@media (max-width: 1359px) {
+  .g-note { display: none; }
+}
+/* The compact label, under 1600 px wide. The line of facts is one clause to a line (overlay.js builds it as clauses,
+   .l-cl, each with the middle dot that follows it, .l-sep), so the card is as narrow as the muscle's name: about two
+   thirds the width of the one-line label. A narrow card finds a seat off the fibers where a wide one finds none: on the mock
+   rail at the pane, 23 labels over twelve stops against 14 with the facts on one line (26 before the type grew). */
+@media (max-width: 1599px) {
+  .label:not(.spec) .l-cl { display: block; }
+  .label:not(.spec) .l-sep { display: none; }
+}
+@media (max-width: 1319px) {
+  .chip-short { display: none; }            /* the plate numeral and a count; the name is on the label, in the tooltip and read out */
+  .chip-num { display: block; }
+}
+/* FIX V15/V29/V36: the compact arrangement, for a window under about 1100 px wide (the pane the viewer is flown in is
+   975 x 934 or about 1024 x 768). The legend is one column, and while a card is open it stops short of it; the note
+   under the growth slider goes. The card and the burst panel shrink and scroll inside the column instead of running out
+   of it (they do at every size now). */
+@media (max-width: 1100px) {
+  .lockup { min-width: 0; padding: 0.8rem 1.15rem 0.9rem 1.05rem; }
+  .sub { margin-top: 0.5rem; font-size: var(--f-fact); }
+  .tot { min-width: 0; padding: 0.5rem 0.72rem 0.55rem; }
+  /* in a small pane the woven body leaves little dark room: the labels are set a size smaller, so ten of them find seats */
+  .l-name { font-size: var(--f-body); }
+  .l-fact { font-size: 12px; }
+  /* and on the specimen plate the rows stand 80 px apart: a line of facts takes two lines at most, so it may break
+     inside a fact here (kept whole, three facts took three lines and the label reached the one under it) */
+  .label.spec .l-cl { display: inline; }
+  .legend { grid-template-columns: auto; row-gap: 0.6rem; }
+  .legend-col:first-child .panel-title { padding-right: 2.4rem; }
+  .legend-list > div { min-height: 1.6rem; }
+  .has-card .legend { max-width: calc(100vw - 2 * var(--pad) - 22.5rem - 1rem); }
+  .card-keys { display: none; }             /* the card's two key lines go in the pane (the legend says the same) */
+  .g-count { min-width: 0; }
+  .keys { flex: 0 1 auto; flex-wrap: wrap; row-gap: 0.3rem; }      /* six keys with their longest words are wider than the pane's dock: they take a second row then */
+}
+@media (max-width: 880px) {
+  /* FIX V36: in a very narrow window the right-hand column goes under the title, so neither covers the other and the
+     mock banner is never off the screen */
+  .topright { top: calc(var(--top) + 10.6rem); left: var(--pad); right: var(--pad); align-items: stretch; }
+  .totals { flex-wrap: wrap; }
+  .tot { flex: 1 1 30%; }
+  .card, .burst { width: auto; }
+}
+@media (max-width: 700px) {
+  .dock { width: calc(100vw - 2 * var(--pad)); }
+}
+/* A short window: the burst panel closes up, in two steps, before it ever scrolls. Nothing is left out. */
+@media (max-height: 960px) {
+  .burst { padding: 0.9rem 1.25rem 0.9rem; }
+  .burst .row { padding: 0.2rem 0; }
+  .burst-bar { margin-top: 0.6rem; }
+  .burst .card-key { margin-top: 0.35rem; }
+  .burst .burst-rows + .card-key { margin-top: 0.6rem; }
+  .burst-caption { margin-top: 0.55rem; padding-top: 0.5rem; line-height: 1.38; }
+}
+@media (max-height: 840px) {
+  /* the title block closes up too (the first label of the specimen plate stands right under it in a wide, short window) */
+  .lockup { padding-top: 0.65rem; padding-bottom: 0.7rem; }
+  .eyebrow { margin-bottom: 0.45rem; }
+  .sub { margin-top: 0.45rem; line-height: 1.3; }
+  /* and the legend, which is one tall column in the pane, closes up so it stays under the title block */
+  .legend { row-gap: 0.45rem; padding: 0.8rem 1.25rem 0.75rem; }
+  .legend-list { margin-top: 0.35rem; }
+  .legend-list > div { min-height: 1.35rem; }
+  .legend-end { padding-top: 0.55rem; }
+  .burst { padding: 0.75rem 1.15rem 0.75rem; }
+  .burst .row { padding: 0.1rem 0; }
+  .burst-rows .row-jobs dd { font-size: 1.5rem; }
+  .burst .card-key { line-height: 1.3; }
+  .burst-caption { margin-top: 0.45rem; padding-top: 0.4rem; line-height: 1.3; }
+}
+@media (prefers-reduced-motion: reduce) { .label, .leader, .tool-label, #gl, .ui { transition: none; } }
+
+/* ---------------------------------------------------------------- INTRO: the opening sequence (src/intro.js)
+   While it runs the sequence owns the page: every panel is hidden and takes no pointer, and each comes in on its bar line
+   through one custom property on the root (--i-title, --i-totals, --i-labels, --i-dock, 0..1, written by intro.js).
+   At the hand-over the class goes and every rule below with it: the page is exactly what it is without an intro. */
+.intro-begin { position: fixed; left: 0; right: 0; bottom: 14vh; margin: 0; text-align: center; font: 400 var(--f-fact)/1.3 var(--sans); color: rgba(255, 255, 255, 0.55); pointer-events: none; }
+.intro .ui { opacity: 1; transition: none; }
+.intro .ui, .intro .ui * { pointer-events: none !important; }
+.intro .lockup { opacity: var(--i-title, 0); }
+.intro .topright { opacity: var(--i-totals, 0); }
+.intro .labels, .intro .leaders { opacity: var(--i-labels, 0); }
+.intro .dock { opacity: var(--i-dock, 0); }
+.intro .tip, .intro .ui > .caption, .intro .empty { visibility: hidden; }
+.intro-play, .intro-play #gl { cursor: none; }
+/* INTRO WORDS: the pointer comes back for three seconds after it moves; the Skip key (dock key style, quiet), lower right
+   and clear of the app's corner (WIRING.md section 6: the bottom-right 180 x 200 px); the screen reader's line; the dock
+   coming in on the hand-over of the full cut */
+.intro-play.intro-moved, .intro-play.intro-moved #gl { cursor: auto; }
+.intro-skip { position: fixed; right: 212px; bottom: 22px; z-index: 30; opacity: 0.6; transition: opacity 0.2s; }
+.intro-skip:hover, .intro-skip:focus-visible { opacity: 0.9; }
+.intro-skip[hidden] { display: none; }
+.vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+@keyframes intro-dock-in { from { opacity: 0; } to { opacity: 1; } }
+.intro-tail .dock { animation: intro-dock-in 0.45s linear both; }
+/* The Intro key makes eight keys with the Sound and Record keys. In the pane (975 wide) eight keys at the usual spacing are
+   wider than the dock and the last took a second row; set a little closer they keep to one. Only while the key is there,
+   so a page without the intro (and every still) is laid out exactly as before. */
+@media (max-width: 1100px) {
+  .keys:has(#btn-intro:not([hidden])) { gap: 0.2rem; }
+  .keys:has(#btn-intro:not([hidden])) .key { gap: 0.36rem; padding-right: 0.5rem; }
+}

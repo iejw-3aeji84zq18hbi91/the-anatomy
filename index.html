@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- FIX V25/V30: the page is dark before the stylesheet has arrived, so nothing is ever white while it loads. -->
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#03050a">
+<title>The Anatomy</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="anatomy-sound" content="off">
+<link rel="stylesheet" href="viewer.css">
+<!-- Where the data comes from. The app sets these two to its own addresses (same origin); ?feed= and ?burst= override them.
+     Left empty, the page uses the defaults in src/main.js (feedUrl) and src/deeplink.js. See WIRING.md. -->
+<meta name="anatomy-feed" content="data/feed.json">
+<meta name="anatomy-burst" content="data/burst.json">
+<!-- INTRO: the opening sequence, cut to the track (src/intro.js, INTRO.md). "on" plays it when the page opens; missing or empty is off,
+     so an embedding app chooses for itself. ?intro=1 / ?intro=0 override it. -->
+<meta name="anatomy-intro" content="on">
+<script type="module" src="src/main.js"></script>
+<!-- Sound (11 Nov): one self-contained module. It adds its own Sound button to the dock. Remove this line to remove the sound. -->
+<script type="module" src="src/sound.js"></script>
+</head>
+<body>
+<canvas id="gl" aria-label="The Anatomy: Auto's muscle memory. Every fiber is one skill he learned."></canvas>
+<!-- INTRO: the one line on the black frame while the sound waits for the first click or key press -->
+<p class="intro-begin" id="intro-begin" hidden>Click to begin</p>
+<!-- INTRO WORDS: the quiet Skip key of the sequence (lower right, clear of the app's corner), and the line of the story now
+     showing, for screen readers (visually hidden). Both are empty and hidden unless the sequence plays. -->
+<button class="key intro-skip" id="intro-skip" type="button" hidden><kbd>Esc</kbd><span>Skip</span></button>
+<p class="vh" id="intro-words" aria-live="polite"></p>
+
+<div id="ui" class="ui">
+  <header class="lockup" id="lockup">
+    <p class="eyebrow">Autogenic</p>
+    <h1>The Anatomy</h1>
+    <p class="sub"><span>Auto's muscle memory.</span> <span>Every fiber is a skill he learned.</span></p>
+  </header>
+
+  <!-- The right-hand column: totals, then whatever is open, stacked. The label layout keeps clear of the whole column. -->
+  <div class="topright" id="topright">
+    <dl class="totals" id="totals"></dl>
+    <p class="banner" id="mock" hidden>Mock data. Every number here is invented to show the look. Not a record.</p>
+    <p class="banner" id="banner" hidden>Partial read: some sources could not be read.</p>
+    <p class="banner" id="mismatch" hidden></p>
+    <p class="caption caption-replay" id="caption" hidden><span class="cap-head">Replaying recorded events</span><span class="cap-note">Each spark is one event on its skill, not a job.</span></p>
+    <p class="notice" id="notice" hidden></p>
+
+    <section class="burst" id="burst" hidden aria-label="Burst replay">
+      <div class="panel-head">
+        <p class="panel-title">Burst replay</p>
+        <button class="card-close" id="burst-close" type="button" aria-label="Stop the burst replay">Esc</button>
+      </div>
+      <p class="burst-where" id="burst-where"></p>
+      <div class="burst-bar" aria-hidden="true"><i id="burst-bar"></i></div>
+      <dl class="burst-rows" id="burst-rows">
+        <div class="row row-jobs"><dt>Jobs</dt><dd id="b-jobs">0</dd></div>
+        <div class="row"><dt>Done by Auto</dt><dd id="b-done">0</dd></div>
+        <div class="row row-handed has"><dt>Handed to a person</dt><dd id="b-handed">0</dd></div>
+        <div class="row"><dt>Wrong</dt><dd id="b-wrong">0</dd></div>
+        <div class="row"><dt>Model calls</dt><dd id="b-calls">0</dd></div>
+        <div class="row"><dt>Ran in</dt><dd id="b-ran"></dd></div>
+      </dl>
+      <p class="card-key"><i class="key-spark"></i>Each bright spark is one job Auto finished himself.</p>
+      <p class="card-key"><i class="key-ember"></i>Each amber spark is one job handed to a person.</p>
+      <p class="burst-caption" id="burst-caption"></p>
+      <p class="burst-note" id="burst-note" hidden></p>
+    </section>
+
+    <aside class="card" id="card" hidden aria-live="polite">
+      <button class="card-close" id="card-close" type="button" aria-label="Close and return to the rail">Esc</button>
+      <div class="card-chips" id="card-chips"></div>
+      <p class="card-title" id="card-title"></p>
+      <button class="card-more" id="card-more" type="button" hidden>Show full title</button>
+      <p class="card-origin" id="card-origin"></p>
+      <dl class="card-rows" id="card-rows"></dl>
+      <div class="card-keys">
+        <p class="card-key"><i class="key-band"></i><span>Each bright band is one job Auto finished himself.</span></p>
+        <p class="card-key"><i class="key-notch"></i><span>Each amber notch is one job handed back to the model.</span></p>
+      </div>
+    </aside>
+  </div>
+
+  <p class="empty" id="empty" hidden>No skills yet</p>
+  <p class="empty" id="feed-error" hidden>The skill map could not be read.</p>
+  <p class="empty" id="restoring" hidden>Restoring the picture</p>
+
+  <div class="leaders" id="leaders" aria-hidden="true"></div>
+  <div class="labels" id="labels"></div>
+
+
+  <div class="tip" id="tip" hidden></div>
+
+  <!-- The dock: one wrapper along the bottom. The legend opens as a drawer on top of it, so no label can sit under either. -->
+  <footer class="dock" id="dock">
+    <section class="legend" id="legend" hidden aria-label="Legend">
+      <div class="legend-col">
+        <p class="panel-title">How to read it</p>
+        <dl class="legend-list">
+          <div><dt><i class="sw sw-lit"></i>Lit fiber</dt><dd>switched on</dd></div>
+          <div><dt><i class="sw sw-prac"></i>Brighter core</dt><dd>practised: clean runs, not jobs</dd></div>
+          <div><dt><i class="sw sw-prov"></i>Blazing core</dt><dd>proven: has jobs done</dd></div>
+          <div><dt><i class="sw sw-dark"></i>Dark fiber</dt><dd>staged, not switched on</dd></div>
+          <div><dt><i class="sw sw-band"></i>Bright band</dt><dd>one job Auto finished himself</dd></div>
+          <div><dt><i class="sw sw-notch"></i>Amber notch</dt><dd>one job handed back to the model</dd></div>
+          <div><dt><i class="sw sw-thick"></i>Thicker fiber</dt><dd>more jobs done</dd></div>
+          <div data-if="strands" hidden><dt><i class="sw sw-twist"></i>Twisted pair</dt><dd>versions of one learned request</dd></div>
+          <div data-if="chains" hidden><dt><i class="sw sw-chain"></i>Thin tendon</dt><dd>one skill feeds the next</dd></div>
+        </dl>
+      </div>
+      <div class="legend-col">
+        <p class="panel-title">The finish says where a skill came from</p>
+        <dl class="legend-list">
+          <div><dt><i class="sw sw-glass"></i>Glass</dt><dd>learned</dd></div>
+          <div><dt><i class="sw sw-taught"></i>White core</dt><dd>taught</dd></div>
+          <div><dt><i class="sw sw-gold"></i>Gold collars</dt><dd>admitted from the One Auto Library</dd></div>
+          <div><dt><i class="sw sw-pearl"></i>Pearl sheath</dt><dd>certified by the Foundry</dd></div>
+          <div><dt><i class="sw sw-etch"></i>Engraving</dt><dd>the skill's id, not a count</dd></div>
+          <div><dt><i class="sw sw-lane"></i>Dashed lane</dt><dd>room for a skill, none there yet</dd></div>
+        </dl>
+      </div>
+      <div class="legend-end">
+        <button class="card-close" id="legend-close" type="button" aria-label="Close the legend">L</button>
+        <p class="legend-foot"><i class="sw sw-scaf"></i>Dark structure is scaffolding, not data.</p>
+        <button class="key legend-specimen" id="btn-specimen" type="button" hidden>See the specimen plate</button>
+      </div>
+    </section>
+
+    <div class="dock-main">
+      <div class="growth">
+        <span class="g-title">Growth</span>
+        <button class="g-play" id="g-play" type="button" aria-label="Play growth">Play</button>
+        <div class="g-track">
+          <output class="g-date" id="g-date" for="g-range"></output>
+          <input class="g-range" id="g-range" type="range" min="0" max="1000" step="1" value="1000" aria-label="Growth of the anatomy over time">
+        </div>
+        <span class="g-count" id="g-count"></span>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="dock-foot">
+        <nav class="keys" aria-label="View controls">
+          <button class="key" id="btn-overview" type="button"><kbd>O</kbd><span id="btn-overview-t">Overview</span></button>
+          <button class="key" id="btn-auto" type="button" aria-pressed="false"><kbd>Space</kbd><span id="btn-auto-t">Autopilot off</span></button>
+          <button class="key" id="btn-replay" type="button" title="Replays the recorded events. Each spark is one event on its skill, not a job."><kbd>R</kbd><span>Replay events</span></button>
+          <button class="key" id="btn-burst" type="button" aria-pressed="false"><kbd>B</kbd><span id="btn-burst-t">Burst</span></button>
+          <button class="key" id="btn-legend" type="button" aria-expanded="false" aria-controls="legend"><kbd>L</kbd><span>Legend</span></button>
+          <button class="key" id="btn-intro" type="button" hidden><kbd>I</kbd><span>Intro</span></button>
+        </nav>
+        <p class="hint">Scroll to fly <i>·</i> Drag to look <i>·</i> Click a fiber</p>
+        <p class="g-note" id="g-note"></p>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<p class="fatal" id="fatal" hidden></p>
+</body>
+</html>
