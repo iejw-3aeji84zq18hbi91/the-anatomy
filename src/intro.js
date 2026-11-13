@@ -208,6 +208,7 @@ export class Intro {
     if (this.frozen != null) { this._enter(); this.state = 'playing'; this.clock = 'frozen'; this.t = this.frozen; document.body.classList.add('still'); return; }
     const S = window.__MM_SOUND;
     this._enter();
+    if (S && S.arm && !S.armed && !S.on) S.arm();   // FOUNDER, 12 Nov 6:39 PM: the film always opens on Click to begin and starts the sound, even if the sound was switched off on an earlier visit (sound.js arm(); only the embedding page's meta keeps it silent)
     if (S && S.armed) { this.state = 'waiting'; this.phase = 'armed'; document.body.classList.add('intro-wait'); if (this.line) this.line.hidden = false; }
     else if (S && S.on) { this.state = 'waiting'; this._starting(); }          // an embedding page started the sound itself: the sequence starts with it
     else { this.state = 'playing'; this.clock = 'silent'; this.t = 0; this.wasOff = true; document.body.classList.add('intro-play'); }

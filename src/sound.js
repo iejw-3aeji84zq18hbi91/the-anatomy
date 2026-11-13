@@ -394,10 +394,16 @@ document.addEventListener('visibilitychange', () => {
 // On unless the person switched it off: it starts with the first click or key press, which is the earliest a
 // browser allows sound. An embedding page can keep it silent by default with <meta name="anatomy-sound" content="off">;
 // the Sound button and the M key still work then.
-let was = '1';
-try { was = localStorage.getItem(STORE) || '1'; } catch { /* nothing remembered */ }
 const meta = document.querySelector('meta[name="anatomy-sound"]');
-if (was === '1' && !(meta && meta.content === 'off')) {
+const held = !!(meta && meta.content === 'off');     // the embedding page keeps the sound off until the person asks for it
+
+// Arm the sound: it starts with the person's next click or key press, the earliest a browser allows. Called below unless
+// the person switched the sound off on an earlier visit, and by the intro (src/intro.js) whenever it is about to play:
+// FOUNDER, 12 Nov 6:39 PM, "click to begin not there it needs to start the sound". The film always opens on its
+// Click to begin and starts the sound, whatever was remembered. Only the embedding page's meta tag keeps it silent.
+function arm() {
+  if (held || S.on || S.ctx) return false;
+  if (S.armed) return true;
   S.armed = true;
   bytes().catch(() => {});                   // fetch the track now, so the first click does not wait for it
   const wake = (e) => {
@@ -405,7 +411,14 @@ if (was === '1' && !(meta && meta.content === 'off')) {
     if (S.armed && !S.on && !(e.type === 'keydown' && (e.key === 'm' || e.key === 'M'))) start();
   };
   addEventListener('pointerdown', wake); addEventListener('keydown', wake);
+  return true;
 }
 
+// On unless the person switched it off. An embedding page can keep it silent by default with
+// <meta name="anatomy-sound" content="off">; the Sound button and the M key still work then.
+let was = '1';
+try { was = localStorage.getItem(STORE) || '1'; } catch { /* nothing remembered */ }
+if (was === '1') arm();
+
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
-window.__MM_SOUND = { get on() { return S.on; }, get mode() { return S.mode; }, get armed() { return S.armed && !S.ctx; }, start, stop, toggle, check, tap, clock, restart };
+window.__MM_SOUND = { get on() { return S.on; }, get mode() { return S.mode; }, get armed() { return S.armed && !S.ctx; }, arm, start, stop, toggle, check, tap, clock, restart };
